@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Lire | Turn Reading into Listening</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@400;500;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.469.0/font/lucide.min.css">
+
+    <!-- Global Styles -->
+    <link rel="stylesheet" href="/css/themes.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        /* =========================
+           HERO
+        ========================== */
+
+        .hero {
+
+            padding-top: 180px;
+            padding-bottom: 100px;
+
+            text-align: center;
+        }
+
+        .hero h1 {
+
+            font-size: clamp(52px, 8vw, 92px);
+
+            line-height: 0.95;
+
+            letter-spacing: -0.05em;
+
+            margin-bottom: 30px;
+        }
+
+        .hero-description {
+
+            max-width: 720px;
+
+            margin-inline: auto;
+
+            font-size: 20px;
+
+            line-height: 1.8;
+
+            color: var(--text-secondary);
+        }
+
+        /* =========================
+           UPLOAD ZONE
+        ========================== */
+
+        .upload-zone {
+
+            position: relative;
+
+            max-width: 850px;
+
+            margin: 60px auto 0;
+
+            padding: 70px 50px;
+
+            border-radius: 40px;
+
+            overflow: hidden;
+
+            border: 2px dashed rgba(255, 255, 255, 0.12);
+
+            background:
+                linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.06),
+                    rgba(255, 255, 255, 0.02));
+
+            backdrop-filter: blur(24px);
+
+            transition:
+                border-color 0.3s ease,
+                transform 0.3s ease,
+                background 0.3s ease;
+        }
+
+        .upload-zone:hover {
+
+            border-color: rgba(255, 255, 255, 0.22);
+
+            transform: translateY(-4px);
+        }
+
+        .upload-zone.dragging {
+
+            border-color: var(--primary);
+
+            background:
+                linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.09),
+                    rgba(255, 255, 255, 0.03));
+
+            transform: scale(1.01);
+        }
+
+        .upload-icon {
+
+            font-size: 72px;
+
+            margin-bottom: 28px;
+
+            color: var(--primary);
+        }
+
+        .upload-title {
+
+            font-size: 42px;
+
+            margin-bottom: 18px;
+        }
+
+        .upload-subtitle {
+
+            color: var(--text-secondary);
+
+            font-size: 18px;
+        }
+
+        .upload-actions {
+
+            margin-top: 40px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 18px;
+
+            flex-wrap: wrap;
+        }
+
+        /* =========================
+           LOADING
+        ========================== */
+
+        .upload-loading-ui {
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            gap: 28px;
+        }
+
+        .upload-loading-ui h2 {
+
+            font-size: 36px;
+        }
+
+        .upload-loading-ui p {
+
+            color: var(--text-secondary);
+        }
+
+        .loading-bar {
+
+            width: 280px;
+            height: 8px;
+
+            border-radius: 999px;
+
+            overflow: hidden;
+
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        #progress-bar {
+
+            width: 0%;
+            height: 100%;
+
+            background: var(--primary);
+
+            border-radius: inherit;
+
+            transition: width 0.25s linear;
+        }
+
+        /* =========================
+           SUCCESS
+        ========================== */
+
+        .success-ui {
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            gap: 20px;
+        }
+
+        .success-ui i {
+
+            font-size: 70px;
+        }
+
+        .success-ui h2 {
+
+            font-size: 42px;
+        }
+
+        .success-ui p {
+
+            color: var(--text-secondary);
+        }
+
+        /* =========================
+           FEATURES
+        ========================== */
+
+        .features {
+
+            padding-bottom: 120px;
+        }
+
+        .feature-card {
+
+            border-radius: 28px;
+
+            padding: 34px;
+
+            background:
+                linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.05),
+                    rgba(255, 255, 255, 0.02));
+
+            border: 1px solid rgba(255, 255, 255, 0.06);
+
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease;
+        }
+
+        .feature-card:hover {
+
+            transform: translateY(-6px);
+
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .feature-card i {
+
+            font-size: 34px;
+
+            margin-bottom: 18px;
+        }
+
+        .feature-card p {
+
+            margin-top: 12px;
+
+            line-height: 1.7;
+
+            color: var(--text-secondary);
+        }
+
+        /* =========================
+           TOAST
+        ========================== */
+
+        .toast {
+
+            position: fixed;
+
+            right: 30px;
+            bottom: 30px;
+
+            padding: 18px 24px;
+
+            border-radius: 16px;
+
+            background:
+                linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.08),
+                    rgba(255, 255, 255, 0.03));
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            backdrop-filter: blur(20px);
+
+            transform: translateY(120px);
+
+            transition: transform 0.4s ease;
+
+            z-index: 9999;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- BACKGROUND -->
+    <div class="background-orbs">
+
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+
+    </div>
+
+    <!-- HEADER -->
+    <header>
+
+        <div class="flex items-center gap-2">
+
+            <i class="lucide-graphic-eq text-primary" style="font-size: 24px;"></i>
+
+            <span style="
+                    font-family: var(--font-display);
+                    font-weight: 800;
+                    font-size: 22px;
+                    color: var(--primary);
+                ">
+                Lire
+            </span>
+
+        </div>
+
+        <nav class="nav-desktop flex gap-4 items-center">
+
+            <a href="#" class="btn btn-outline" style="border: none;">
+                Library
+            </a>
+
+            <a href="/player.html" class="btn btn-outline" style="border: none;">
+                Player Demo
+            </a>
+
+            <button class="theme-toggle" id="theme-toggle">
+                <i class="lucide-sun"></i>
+            </button>
+
+            <a href="#" class="btn btn-primary">
+                Sign In
+            </a>
+
+        </nav>
+
+    </header>
+
+    <!-- MAIN -->
+    <main class="container">
+
+        <!-- HERO -->
+        <section class="hero animate-fade-in">
+
+            <h1>
+                Read with your
+                <span class="text-primary">
+                    eyes
+                </span>,
+                <br>
+                listen with your
+                <span class="italic text-tertiary">
+                    soul.
+                </span>
+            </h1>
+
+            <p class="hero-description">
+
+                Transform PDFs, books, and documents into
+                immersive AI-powered listening experiences
+                designed for deep focus and modern learning.
+
+            </p>
+
+            <!-- UPLOAD -->
+            <div class="upload-zone" id="drop-zone">
+
+                <!-- IDLE -->
+                <div id="upload-idle">
+
+                    <i class="lucide-cloud-upload upload-icon"></i>
+
+                    <h2 class="upload-title">
+                        Drop your document here
+                    </h2>
+
+                    <p class="upload-subtitle">
+                        Supports PDF, TXT, and EPUB files
+                    </p>
+
+                    <div class="upload-actions">
+
+                        <button class="btn btn-primary" id="start-btn">
+
+                            <i class="lucide-plus mr-2" style="font-size: 16px;"></i>
+
+                            Start Listening
+
+                        </button>
+
+                        <input type="file" id="file-input" hidden accept=".pdf,.txt,.epub">
+
+                        <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">
+                            Browse Files
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <!-- LOADING -->
+                <div id="upload-loading" style="display: none;">
+
+                    <div class="upload-loading-ui">
+
+                        <div class="animate-float">
+
+                            <i class="lucide-loader-2 animate-spin text-primary" style="font-size: 64px;"></i>
+
+                        </div>
+
+                        <h2>
+                            Processing your document...
+                        </h2>
+
+                        <p>
+                            Extracting text and preparing
+                            narration experience
+                        </p>
+
+                        <div class="loading-bar">
+
+                            <div id="progress-bar"></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- SUCCESS -->
+                <div id="upload-success" style="display: none;">
+
+                    <div class="success-ui">
+
+                        <i class="lucide-check-circle text-primary"></i>
+
+                        <h2>
+                            Ready for listening
+                        </h2>
+
+                        <p id="ready-filename"></p>
+
+                        <a href="/player.html" class="btn btn-primary">
+                            Open Player
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- FEATURES -->
+        <section class="features">
+
+            <div class="grid grid-3">
+
+                <!-- FEATURE -->
+                <div class="feature-card animate-fade-in stagger-1">
+
+                    <i class="lucide-brain text-primary"></i>
+
+                    <h3>
+                        Smart Summaries
+                    </h3>
+
+                    <p>
+
+                        Get instant understanding of long
+                        documents before diving deeper into
+                        the full listening experience.
+
+                    </p>
+
+                </div>
+
+                <!-- FEATURE -->
+                <div class="feature-card animate-fade-in stagger-2">
+
+                    <i class="lucide-zap text-tertiary"></i>
+
+                    <h3>
+                        Neural Voices
+                    </h3>
+
+                    <p>
+
+                        High-quality AI narration optimized
+                        for long-form listening and knowledge
+                        retention.
+
+                    </p>
+
+                </div>
+
+                <!-- FEATURE -->
+                <div class="feature-card animate-fade-in stagger-3">
+
+                    <i class="lucide-book-open text-primary"></i>
+
+                    <h3>
+                        Deep Focus Mode
+                    </h3>
+
+                    <p>
+
+                        Minimal distraction interface designed
+                        for immersive reading and listening
+                        sessions.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+
+        <span id="toast-msg">
+            Upload successful
+        </span>
+
+    </div>
+
+    <!-- SCRIPTS -->
+    <script type="module" src="/src/js/app.ts"></script>
+
+    <script type="module" src="/src/js/theme.ts"></script>
+
+    <script type="module" src="/src/js/upload.ts"></script>
+
+</body>
+
+</html>

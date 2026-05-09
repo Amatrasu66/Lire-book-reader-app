@@ -1,0 +1,48 @@
+/* 
+  Lire Responsive System
+  Mobile-first adjustments and scaling.
+*/
+
+@media (max-width: 1024px) {
+  header {
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 20px;
+  }
+  
+  h1 { font-size: 32px; }
+  h2 { font-size: 24px; }
+  
+  .glass-card {
+    padding: 24px;
+  }
+  
+  header {
+    height: 64px;
+  }
+
+  .nav-desktop {
+    display: none;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Custom Grids */
+.grid { display: grid; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.grid-3 { grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+@media (max-width: 900px) {
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
