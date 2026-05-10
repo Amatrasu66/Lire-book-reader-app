@@ -76,22 +76,94 @@ export function initPlayer() {
         rawSegments = grouped;
     }
 
-    // =========================
-    // PROPORTIONAL TIMING ENGINE
-    // =========================
+    // =========================================
+    // PLAYLIST CONTINUITY BUILDER
+    // =========================================
     
-    let totalCharCount = 0;
-    const segmentLengths = rawSegments.map((s: string) => s.length);
-    segmentLengths.forEach(l => totalCharCount += l);
+    let chunks = data.chunks;
+    if (!chunks && data.audioUrl) {
+        chunks = [{
+            audio_url: data.audioUrl,
+            timings: data.timings || [],
+            duration: (data.timings && data.timings.length) ? data.timings[data.timings.length - 1].end : 0
+        }];
+    }
 
-    const timingMap: Array<{ start: number; end: number }> = [];
-    let currentPct = 0;
-    segmentLengths.forEach(len => {
-        const startRange = currentPct;
-        const endRange = startRange + (len / (totalCharCount || 1));
-        timingMap.push({ start: startRange, end: endRange });
-        currentPct = endRange;
+    const unifiedTimings: Array<{start: number; end: number; text: string}> = [];
+    const chunkOffsets: number[] = [];
+    let totalSeconds = 0;
+
+    chunks.forEach((ch: any) => {
+        chunkOffsets.push(totalSeconds);
+        if (ch.timings && Array.isArray(ch.timings)) {
+            ch.timings.forEach((t: any) => {
+                unifiedTimings.push({
+                    start: t.start + totalSeconds,
+                    end: t.end + totalSeconds,
+                    text: t.text
+                });
+            });
+        }
+        totalSeconds += ch.duration || 0;
     });
+
+    const totalBookDuration = totalSeconds || 1;
+
+    // =========================================
+    // HIGH-PRECISION TIMING ENGINE
+    // =========================================
+    let isHighResTiming = false;
+    const timingMap: Array<{ start: number; end: number }> = [];
+
+    if (unifiedTimings.length > 0) {
+        isHighResTiming = true;
+        let cursor = 0;
+        
+        rawSegments.forEach((paragraph: string) => {
+            let pStart = -1;
+            let pEnd = 0;
+            let currentLen = 0;
+            const targetThreshold = paragraph.trim().length;
+
+            while (cursor < unifiedTimings.length) {
+                const t = unifiedTimings[cursor];
+                if (pStart === -1) pStart = t.start;
+                pEnd = t.end;
+                currentLen += t.text.trim().length;
+                cursor++;
+
+                // Factor in light spaces padding, tolerance for formatting
+                if ((currentLen + 1) >= targetThreshold - 5) {
+                    break;
+                }
+            }
+
+            // Safety fallback
+            if (pStart === -1) {
+                pStart = timingMap.length > 0 ? timingMap[timingMap.length-1].end : 0;
+                pEnd = pStart + 1;
+            }
+
+            timingMap.push({ start: pStart, end: pEnd });
+        });
+
+        console.log("Loaded High-Res Exact Timing Map for", timingMap.length, "paragraphs.");
+
+    } else {
+        // FALLBACK: PROPORTIONAL GUESSWORK
+        let totalCharCount = 0;
+        const segmentLengths = rawSegments.map((s: string) => s.length);
+        segmentLengths.forEach(l => totalCharCount += l);
+
+        let currentPct = 0;
+        segmentLengths.forEach(len => {
+            const startRange = currentPct;
+            const endRange = startRange + (len / (totalCharCount || 1));
+            timingMap.push({ start: startRange, end: endRange });
+            currentPct = endRange;
+        });
+        console.warn("Using proportional fallback timing engine.");
+    }
 
     transcriptEl!.innerHTML = rawSegments
         .map((chunk: string, index: number) => 
@@ -103,7 +175,11 @@ export function initPlayer() {
     // AUDIO
     // =========================
 
-    const audio = new Audio(data.audioUrl);
+    let currentChunkIndex = 0;
+    const audio = new Audio(chunks[0].audio_url);
+    
+    // Set duration instantly since we know the cumulative sum
+    if (durationEl) durationEl.textContent = formatTime(totalBookDuration);
 
     // =========================
     // WAVEFORM
@@ -119,8 +195,62 @@ export function initPlayer() {
         }
     }
 
-    audio.addEventListener('loadedmetadata', () => {
-        if (durationEl) durationEl.textContent = formatTime(audio.duration);
+    // =========================
+    // CHUNKED TRANSITION ENGINE
+    // =========================
+    function loadAndPlayChunk(index: number, startTime: number = 0) {
+        if (index < 0 || index >= chunks.length) return;
+        currentChunkIndex = index;
+        
+        // Carry current playback speed across chunks
+        const currentSpeed = audio.playbackRate;
+        
+        audio.src = chunks[index].audio_url;
+        audio.load();
+        
+        // Re-apply speed (reset when src changes in most browsers)
+        audio.playbackRate = currentSpeed;
+        
+        audio.currentTime = startTime;
+        
+        if (isPlaying) {
+            audio.play().catch(() => console.warn("Auto-advance paused due to interaction restriction."));
+        }
+    }
+
+    function seekToGlobalTime(targetSec: number) {
+        const safeTarget = Math.max(0, Math.min(targetSec, totalBookDuration));
+        
+        // Determine destination chunk index
+        let targetIdx = 0;
+        for (let i = chunkOffsets.length - 1; i >= 0; i--) {
+             if (safeTarget >= chunkOffsets[i]) {
+                 targetIdx = i;
+                 break;
+             }
+        }
+        
+        const localOffset = safeTarget - chunkOffsets[targetIdx];
+        
+        if (targetIdx === currentChunkIndex) {
+             audio.currentTime = localOffset;
+        } else {
+             loadAndPlayChunk(targetIdx, localOffset);
+        }
+    }
+
+    audio.addEventListener('ended', () => {
+        if (currentChunkIndex < chunks.length - 1) {
+            loadAndPlayChunk(currentChunkIndex + 1);
+        } else {
+            // Truly the end of the book
+            isPlaying = false;
+            if (playIcon) playIcon.className = 'icon-play';
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
     });
 
     // =========================
@@ -133,7 +263,8 @@ export function initPlayer() {
     const speedText = document.getElementById('speed-text');
 
     rewindBtn?.addEventListener('click', () => {
-        audio.currentTime = Math.max(0, audio.currentTime - 10);
+        const currentGlobal = chunkOffsets[currentChunkIndex] + audio.currentTime;
+        seekToGlobalTime(currentGlobal - 10);
         
         // Brief animation feedback
         rewindBtn.style.transform = 'scale(0.9)';
@@ -141,7 +272,8 @@ export function initPlayer() {
     });
 
     forwardBtn?.addEventListener('click', () => {
-        audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10);
+        const currentGlobal = chunkOffsets[currentChunkIndex] + audio.currentTime;
+        seekToGlobalTime(currentGlobal + 10);
         
         // Brief animation feedback
         forwardBtn.style.transform = 'scale(0.9)';
@@ -176,7 +308,8 @@ export function initPlayer() {
         }
 
         const bars = document.querySelectorAll('.wave-bar');
-        const progress = (audio.currentTime / audio.duration) || 0;
+        const globalNow = chunkOffsets[currentChunkIndex] + audio.currentTime;
+        const progress = (globalNow / totalBookDuration) || 0;
         const activeBarsCount = Math.floor(progress * bars.length);
 
         bars.forEach((bar: any, index) => {
@@ -263,23 +396,40 @@ export function initPlayer() {
     let currentLineIndex = -1;
 
     audio.addEventListener('timeupdate', () => {
-        const progress = (audio.currentTime / audio.duration) * 100;
+        const globalNow = chunkOffsets[currentChunkIndex] + audio.currentTime;
+        const progress = (globalNow / totalBookDuration) * 100;
 
         // Update Progress Bar
         if (progressFill) progressFill.style.width = `${progress}%`;
 
         // Update Time Text
-        if (currentTimeEl) currentTimeEl.textContent = formatTime(audio.currentTime);
+        if (currentTimeEl) currentTimeEl.textContent = formatTime(globalNow);
 
         // Transcript Highlight Scroll
         const lines = document.querySelectorAll('.transcript-line');
         if (lines.length === 0) return;
 
-        // Accurate Proportional Transcript Find
-        const progressRatio = audio.currentTime / (audio.duration || 1);
-        let activeLine = timingMap.findIndex(range => 
-            progressRatio >= range.start && progressRatio < range.end
-        );
+        const progressRatio = globalNow / totalBookDuration;
+        let activeLine = -1;
+
+        if (isHighResTiming) {
+            // Absolute Second Scan
+            activeLine = timingMap.findIndex(range => 
+                globalNow >= range.start && globalNow < range.end
+            );
+        } else {
+            // Relative Percentage Scan (Fallback)
+            activeLine = timingMap.findIndex(range => 
+                progressRatio >= range.start && progressRatio < range.end
+            );
+        }
+
+        // Persistent trailing fill protection for high-res
+        if (activeLine === -1 && isHighResTiming) {
+             if (timingMap.length > 0 && globalNow >= timingMap[timingMap.length-1].end) {
+                 activeLine = timingMap.length - 1;
+             }
+        }
 
         // End of file safety net
         if (activeLine === -1 && progressRatio >= 0.95) {
@@ -327,8 +477,7 @@ export function initPlayer() {
             const percent =
                 (e.clientX - rect.left) / rect.width;
 
-            audio.currentTime =
-                percent * audio.duration;
+            seekToGlobalTime(percent * totalBookDuration);
         });
 
     // =========================

@@ -1,28 +1,10 @@
-# Book Listener — Python dependencies
-# Install with: pip install -r requirements.txt
-
-# ── Web framework ──────────────────────────────────────────────────────────────
 Flask==3.1.0
 Flask-Cors==5.0.0
-
-# ── PDF parsing ────────────────────────────────────────────────────────────────
+Werkzeug==3.1.3
 PyPDF2==3.0.1
 PyMuPDF
 pydub
-
-# ── Text-to-Speech ─────────────────────────────────────────────────────────────
-gTTS==2.5.3
-pyttsx3
-
-# ── Werkzeug (Flask dependency — pinned for stability) ─────────────────────────
-Werkzeug==3.1.3
-
-# ── Future upgrade suggestions (uncomment when ready) ─────────────────────────
-# elevenlabs          # AI voice generation
-# openai              # OpenAI TTS / Whisper
-# APScheduler         # Background cleanup jobs
-# Flask-SQLAlchemy    # ORM for MySQL / PostgreSQL
-# Flask-Login         # User authentication
-# boto3               # AWS S3 cloud storage
-# celery              # Distributed task queues
-# redis               # Broker for Celery
+edge-tts
+gunicorn
+Pillow
+aiofiles

@@ -1,0 +1,29 @@
+services:
+  # =========================================
+  # BACKEND (Flask)
+  # =========================================
+  - type: web
+    name: lire-api
+    runtime: python
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --chdir backend app:app"
+    envVars:
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: PYTHON_VERSION
+        value: 3.11.6
+
+  # =========================================
+  # FRONTEND (Vite Static Site)
+  # =========================================
+  - type: web
+    name: lire-web
+    runtime: static
+    buildCommand: "cd frontend && npm install && npm run build"
+    staticPublishPath: "frontend/dist"
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: lire-api
+          property: url

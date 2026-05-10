@@ -97,7 +97,7 @@ def upload_file():
     voice_type = request.form.get("voice_type", config.DEFAULT_VOICE).lower().strip()
 
     try:
-        audio_filename = generate_audio(text, voice_type)
+        manifest = generate_audio(text, voice_type)
     except ValueError as exc:
         delete_file(upload_path)
         return _error(str(exc), 400)
@@ -108,28 +108,36 @@ def upload_file():
     # ── 5. Clean up the uploaded source file (we don't need it anymore) ────────
     delete_file(upload_path)
 
-    # ── 6. Return success ──────────────────────────────────────────────────────
-    audio_url = f"/audio/{audio_filename}"
-    logger.info("Pipeline complete. Audio URL: %s", audio_url)
+    # ── 6. Package Chunk Array and Dispatch success ──────────────────────────────
+    final_chunks = []
+    for chunk_obj in manifest:
+        final_chunks.append({
+            "audio_url": f"/audio/{chunk_obj['audio_filename']}",
+            "duration": chunk_obj["duration"],
+            "timings": chunk_obj["timings"],
+            "text": chunk_obj["text"]
+        })
+        
+    logger.info("Scaled pipeline complete. Finalized playlist of %d items.", len(final_chunks))
 
     return jsonify(
     {
         "success": True,
 
-        "audio_url": f"/audio/{audio_filename}",
+        "chunks": final_chunks,
 
         "text": text,
 
         "title": original_name.rsplit(".", 1)[0],
 
         "cover_image":
-            f"http://127.0.0.1:5000/static/{cover_filename}"
+            f"/static/{cover_filename}"
             if cover_filename
             else None,
 
         "file_id": file_id,
 
-        "message": "Document processed successfully"
+        "message": "Scaled document generated successfully"
     }
 ), 200
 

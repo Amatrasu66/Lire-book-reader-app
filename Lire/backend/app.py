@@ -47,9 +47,9 @@ def create_app() -> Flask:
     app.config["UPLOAD_FOLDER"]      = config.UPLOAD_DIR
 
     # ── CORS ───────────────────────────────────────────────────────────────────
-    # In production, replace "*" with your frontend's exact origin.
-    # E.g.: CORS(app, origins=["https://booklistener.app"])
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    import os
+    allowed = os.getenv("CORS_ALLOWED_ORIGINS", "*").split(",")
+    CORS(app, resources={r"/*": {"origins": allowed}})
 
     # ── Blueprints ─────────────────────────────────────────────────────────────
     app.register_blueprint(upload_bp)

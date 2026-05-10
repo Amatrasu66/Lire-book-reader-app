@@ -73,6 +73,8 @@ export function initUpload() {
         }
     });
 
+    const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:5000';
+
     async function handleFile(file: File) {
 
         idleState!.style.display = 'none';
@@ -88,7 +90,7 @@ export function initUpload() {
             formData.append('file', file);
 
             const response = await fetch(
-                'http://127.0.0.1:5000/upload',
+                `${API_BASE}/upload`,
                 {
                     method: 'POST',
                     body: formData
@@ -114,11 +116,13 @@ export function initUpload() {
                 text:
                     data.text,
 
-                audioUrl:
-                    `http://127.0.0.1:5000${data.audio_url}`,
+                chunks: data.chunks.map((ch: any) => ({
+                    ...ch,
+                    audio_url: `${API_BASE}${ch.audio_url}`
+                })),
 
                 coverImage:
-                    data.cover_image,
+                    data.cover_image ? `${API_BASE}${data.cover_image}` : null,
 
                 uploadedAt:
                     Date.now()
