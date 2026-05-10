@@ -73,7 +73,7 @@ export function initUpload() {
         }
     });
 
-    const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_BASE = (import.meta as any).env.VITE_API_URL || 'https://lire-book-reader-app.onrender.com';
 
     async function handleFile(file: File) {
 
