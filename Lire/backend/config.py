@@ -13,7 +13,7 @@ AUDIO_DIR   = os.path.join(BASE_DIR, "audio")
 STATIC_DIR  = os.path.join(BASE_DIR, "static")
 
 # ── Upload constraints ─────────────────────────────────────────────────────────
-MAX_CONTENT_LENGTH = 32 * 1024 * 1024   # 32 MB hard limit enforced by Flask
+MAX_CONTENT_LENGTH = 8 * 1024 * 1024   # 8 MB hard limit enforced by Flask
 ALLOWED_EXTENSIONS = {"pdf", "txt"}
 
 # ── TTS settings ───────────────────────────────────────────────────────────────

@@ -65,24 +65,17 @@ def extract_text_from_pdf(file_path: str):
 def extract_cover(pdf_path: str):
 
     try:
-
         doc = fitz.open(pdf_path)
-
         page = doc.load_page(0)
-
-        pix = page.get_pixmap(
-            matrix=fitz.Matrix(2, 2)
-        )
-
+        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+        
         cover_filename = f"{uuid.uuid4().hex}.png"
-
-        output_path = os.path.join(
-            config.STATIC_DIR,
-            cover_filename
-        )
-
+        output_path = os.path.join(config.STATIC_DIR, cover_filename)
         pix.save(output_path)
-
+        
+        # Explicitly close handle to liberate loaded binary resources immediately
+        doc.close()
+        
         return cover_filename
 
     except Exception as exc:
