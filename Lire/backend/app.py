@@ -40,6 +40,7 @@ def create_app() -> Flask:
     the codebase testable and ready for multi-environment configs.
     """
     app = Flask(__name__, static_folder=config.STATIC_DIR)
+    app.static_url_path = '/static'
 
     # ── Config ─────────────────────────────────────────────────────────────────
     app.config["MAX_CONTENT_LENGTH"] = config.MAX_CONTENT_LENGTH

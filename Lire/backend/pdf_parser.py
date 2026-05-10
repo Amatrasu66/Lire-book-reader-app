@@ -1,63 +1,95 @@
-"""
-utils/pdf_parser.py — Extracts plain text from PDF files using PyPDF2.
-
-Designed to be swapped out for pdfplumber / pdfminer in the future
-if richer extraction (tables, columns) is needed.
-"""
-
 import logging
+import os
+import uuid
+
+import fitz
+
 from PyPDF2 import PdfReader
 from PyPDF2.errors import PdfReadError
+
+import config
 
 logger = logging.getLogger(__name__)
 
 
-def extract_text_from_pdf(file_path: str) -> str:
-    """
-    Read a PDF file and return all page text concatenated.
+def extract_text_from_pdf(file_path: str):
 
-    Args:
-        file_path: Absolute path to the PDF on disk.
-
-    Returns:
-        Extracted text as a single string.
-
-    Raises:
-        ValueError: If the file is empty, encrypted, or yields no text.
-        RuntimeError: If PyPDF2 cannot read the file at all.
-    """
     try:
+
         reader = PdfReader(file_path)
+
     except PdfReadError as exc:
-        logger.error("PyPDF2 failed to open '%s': %s", file_path, exc)
-        raise RuntimeError(f"Could not parse PDF: {exc}") from exc
-    except Exception as exc:
-        logger.error("Unexpected error opening '%s': %s", file_path, exc)
-        raise RuntimeError(f"Unexpected error reading PDF: {exc}") from exc
 
-    # Reject encrypted PDFs early (password-protected).
+        raise RuntimeError(
+            f"Could not parse PDF: {exc}"
+        )
+
     if reader.is_encrypted:
-        raise ValueError("PDF is password-protected. Please provide an unlocked file.")
 
-    if len(reader.pages) == 0:
-        raise ValueError("PDF contains no pages.")
+        raise ValueError(
+            "PDF is password protected"
+        )
 
-    pages_text: list[str] = []
-    for page_number, page in enumerate(reader.pages, start=1):
+    pages_text = []
+
+    for page in reader.pages:
+
         try:
-            page_text = page.extract_text() or ""
-            pages_text.append(page_text)
-        except Exception as exc:
-            # Log but continue — don't fail the whole book on one bad page.
-            logger.warning("Could not extract text from page %d: %s", page_number, exc)
+
+            text = page.extract_text() or ""
+
+            pages_text.append(text)
+
+        except Exception:
+
+            pass
 
     full_text = "\n".join(pages_text).strip()
 
     if not full_text:
+
         raise ValueError(
-            "No readable text found in the PDF. "
-            "The file may be image-only (scanned). OCR support is on the roadmap."
+            "No readable text found"
         )
 
-    logger.info("Extracted %d characters from %d pages.", len(full_text), len(reader.pages))
-    return full_text
+    cover_filename = extract_cover(file_path)
+
+    return {
+
+        "text": full_text,
+
+        "cover": cover_filename
+    }
+
+
+def extract_cover(pdf_path: str):
+
+    try:
+
+        doc = fitz.open(pdf_path)
+
+        page = doc.load_page(0)
+
+        pix = page.get_pixmap(
+            matrix=fitz.Matrix(2, 2)
+        )
+
+        cover_filename = f"{uuid.uuid4().hex}.png"
+
+        output_path = os.path.join(
+            config.STATIC_DIR,
+            cover_filename
+        )
+
+        pix.save(output_path)
+
+        return cover_filename
+
+    except Exception as exc:
+
+        logger.warning(
+            "Could not generate cover: %s",
+            exc
+        )
+
+    return None

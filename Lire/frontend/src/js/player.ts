@@ -1,416 +1,356 @@
 /**
- * Lire Dynamic Audio Player
- * Real playback + dynamic uploaded book support
+ * Lire Dynamic Player
  */
-
-console.log("LIRE PLAYER INITIALIZED");
-
-// =========================
-// LOAD SAVED BOOK DATA
-// =========================
-
-const savedData =
-    localStorage.getItem("currentBook");
-
-const bookData =
-    savedData ? JSON.parse(savedData) : null;
-
-// =========================
-// PLAYER INIT
-// =========================
 
 export function initPlayer() {
 
-    // =========================
-    // DOM ELEMENTS
-    // =========================
+    const saved =
+        localStorage.getItem('currentBook');
 
-    const playBtn =
-        document.getElementById("play-pause");
+    if (!saved) {
 
-    const playIcon =
-        document.getElementById("play-icon");
+        window.location.href =
+            '/index.html';
 
-    const rewindBtn =
-        document.getElementById("rewind");
+        return;
+    }
 
-    const forwardBtn =
-        document.getElementById("forward");
+    const data = JSON.parse(saved);
 
-    const progressFill =
-        document.getElementById("progress-fill");
+    console.log("PLAYER DATA:", data);
 
-    const progressContainer =
-        document.getElementById("progress-container");
+    const titleEl =
+        document.getElementById('playing-title');
 
-    const currentTimeEl =
-        document.getElementById("current-time");
+    const metaEl =
+        document.getElementById('playing-meta');
 
-    const durationEl =
-        document.getElementById("duration");
+    const coverEl =
+        document.getElementById('cover-image') as HTMLImageElement;
+
+    const transcriptEl =
+        document.getElementById('transcript-content');
 
     const waveform =
-        document.getElementById("waveform");
+        document.getElementById('waveform');
 
-    const title =
-        document.getElementById("playing-title");
+    const progressFill =
+        document.getElementById('progress-fill');
 
-    const meta =
-        document.getElementById("playing-meta");
+    const progressContainer =
+        document.getElementById('progress-container');
 
-    const transcript =
-        document.querySelector(".transcription");
+    const currentTimeEl =
+        document.getElementById('current-time');
 
-    const cover =
-        document.getElementById("cover-image");
+    const durationEl =
+        document.getElementById('duration');
 
-    // =========================
-    // LOAD AUDIO
-    // =========================
+    const playBtn =
+        document.getElementById('play-pause');
 
-    const audio = new Audio(
-        bookData?.audioUrl || "/audio/test.mp3"
-    );
-
-    audio.preload = "metadata";
+    const playIcon =
+        document.getElementById('play-icon');
 
     // =========================
-    // LOAD DYNAMIC CONTENT
+    // DYNAMIC CONTENT - PARAGRAPH SPLIT
     // =========================
 
-    if (bookData) {
+    titleEl!.textContent = data.title;
+    metaEl!.textContent = 'AI narration ready';
 
-        if (title) {
+    if (data.coverImage) {
+        coverEl.src = data.coverImage;
+    }
 
-            title.textContent =
-                bookData.title || "Untitled Document";
+    // Split smartly into meaningful chunks (paragraphs or grouped sentences)
+    let rawSegments = data.text.split(/\n\s*\n/).filter((s: string) => s.trim().length > 0);
+    
+    // Fallback logic if text lacks paragraph breaks: group every 3 sentences
+    if (rawSegments.length < 4) {
+        const allSentences = data.text.split(/(?<=[.!?])\s+/).filter((s: string) => s.trim().length > 0);
+        const grouped = [];
+        for (let i = 0; i < allSentences.length; i += 3) {
+            grouped.push(allSentences.slice(i, i + 3).join(' '));
         }
-
-        if (meta) {
-
-            meta.textContent =
-                `${bookData.filename} • AI narration ready`;
-        }
-
-        if (transcript) {
-
-            const cleanText =
-                bookData.text ||
-                "No transcript available.";
-
-            transcript.textContent =
-                cleanText.slice(0, 800) + "...";
-        }
-
-        if (cover instanceof HTMLImageElement && bookData.coverImage) {
-
-            cover.src = bookData.coverImage;
-        }
+        rawSegments = grouped;
     }
 
     // =========================
-    // PLAYER STATE
+    // PROPORTIONAL TIMING ENGINE
+    // =========================
+    
+    let totalCharCount = 0;
+    const segmentLengths = rawSegments.map((s: string) => s.length);
+    segmentLengths.forEach(l => totalCharCount += l);
+
+    const timingMap: Array<{ start: number; end: number }> = [];
+    let currentPct = 0;
+    segmentLengths.forEach(len => {
+        const startRange = currentPct;
+        const endRange = startRange + (len / (totalCharCount || 1));
+        timingMap.push({ start: startRange, end: endRange });
+        currentPct = endRange;
+    });
+
+    transcriptEl!.innerHTML = rawSegments
+        .map((chunk: string, index: number) => 
+            `<p class="transcript-line" id="line-${index}">${chunk}</p>`
+        )
+        .join('');
+
+    // =========================
+    // AUDIO
     // =========================
 
-    let isPlaying = false;
+    const audio = new Audio(data.audioUrl);
 
     // =========================
-    // GENERATE WAVEFORM
+    // WAVEFORM
     // =========================
 
     if (waveform) {
-
-        waveform.innerHTML = "";
-
-        for (let i = 0; i < 70; i++) {
-
-            const bar =
-                document.createElement("div");
-
-            bar.className = "wave-bar";
-
-            const randomHeight =
-                12 + Math.random() * 45;
-
-            bar.style.height =
-                `${randomHeight}px`;
-
+        waveform.innerHTML = '';
+        for (let i = 0; i < 60; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'wave-bar';
+            bar.style.height = `${10 + Math.random() * 25}px`;
             waveform.appendChild(bar);
         }
     }
 
+    audio.addEventListener('loadedmetadata', () => {
+        if (durationEl) durationEl.textContent = formatTime(audio.duration);
+    });
+
     // =========================
-    // PLAY / PAUSE
+    // EXTRA CONTROLS (SPEED/SKIP)
+    // =========================
+    
+    const rewindBtn = document.getElementById('rewind');
+    const forwardBtn = document.getElementById('forward');
+    const speedControl = document.getElementById('speed-control');
+    const speedText = document.getElementById('speed-text');
+
+    rewindBtn?.addEventListener('click', () => {
+        audio.currentTime = Math.max(0, audio.currentTime - 10);
+        
+        // Brief animation feedback
+        rewindBtn.style.transform = 'scale(0.9)';
+        setTimeout(() => rewindBtn.style.transform = 'scale(1)', 100);
+    });
+
+    forwardBtn?.addEventListener('click', () => {
+        audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10);
+        
+        // Brief animation feedback
+        forwardBtn.style.transform = 'scale(0.9)';
+        setTimeout(() => forwardBtn.style.transform = 'scale(1)', 100);
+    });
+
+    const speeds = [0.75, 1, 1.25, 1.5, 2];
+    let speedIdx = 1; // Default 1x
+
+    speedControl?.addEventListener('click', () => {
+        speedIdx = (speedIdx + 1) % speeds.length;
+        const newSpeed = speeds[speedIdx];
+        
+        audio.playbackRate = newSpeed;
+        if (speedText) speedText.innerText = `${newSpeed}x Speed`;
+        
+        // Animated feedback
+        speedControl.style.transform = 'translateY(-2px)';
+        setTimeout(() => speedControl.style.transform = 'translateY(0)', 150);
+    });
+
+    // =========================
+    // ANIMATION SYSTEM
     // =========================
 
-    playBtn?.addEventListener(
-        "click",
-        async () => {
+    let animationId: number | null = null;
 
-            if (isPlaying) {
+    function animateWaveform() {
+        if (!isPlaying) {
+            if (animationId) cancelAnimationFrame(animationId);
+            return;
+        }
 
-                audio.pause();
+        const bars = document.querySelectorAll('.wave-bar');
+        const progress = (audio.currentTime / audio.duration) || 0;
+        const activeBarsCount = Math.floor(progress * bars.length);
 
-                isPlaying = false;
-
-                if (playIcon) {
-
-                    playIcon.className =
-                        "lucide-play";
-                }
-
+        bars.forEach((bar: any, index) => {
+            const isActive = index <= activeBarsCount;
+            
+            if (isActive) {
+                // SIGNIFICANT VARIANCES FOR TALLER HEIGHTS
+                const baseHeight = 30;
+                const variance = 90; // Increased peak height variance
+                const randomFactor = Math.random() * variance;
+                bar.style.height = `${baseHeight + randomFactor}px`;
+                bar.classList.add('active');
             } else {
+                // Background pulses slightly taller
+                const base = 12;
+                const variance = 10;
+                bar.style.height = `${base + Math.random() * variance}px`;
+                bar.classList.remove('active');
+            }
+        });
 
-                try {
+        animationId = requestAnimationFrame(animateWaveform);
+    }
 
-                    await audio.play();
+    // =========================
+    // FOLLOW MODE
+    // =========================
 
-                    isPlaying = true;
+    let isFollowEnabled = true;
+    const toggleFollowBtn = document.getElementById('toggle-follow');
+    const followIcon = document.getElementById('follow-icon');
+    const followText = document.getElementById('follow-text');
 
-                    if (playIcon) {
+    toggleFollowBtn?.addEventListener('click', () => {
+        isFollowEnabled = !isFollowEnabled;
+        
+        if (isFollowEnabled) {
+            toggleFollowBtn.classList.add('active-toggle');
+            followText!.innerText = 'Follow: ON';
+            if (followIcon) followIcon.className = 'icon-eye';
+            
+            // Immediately scroll to current line
+            const lines = document.querySelectorAll('.transcript-line');
+            if (currentLineIndex !== -1 && lines[currentLineIndex]) {
+                 lines[currentLineIndex].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                 });
+            }
+        } else {
+            toggleFollowBtn.classList.remove('active-toggle');
+            followText!.innerText = 'Follow: OFF';
+            if (followIcon) followIcon.className = 'icon-eye-off';
+        }
+    });
 
-                        playIcon.className =
-                            "lucide-pause";
-                    }
+    // =========================
+    // PLAY STATE
+    // =========================
 
-                } catch (err) {
+    let isPlaying = false;
 
-                    console.error(
-                        "Audio playback failed:",
-                        err
-                    );
+    playBtn?.addEventListener('click', () => {
+        if (!isPlaying) {
+            audio.play();
+            isPlaying = true;
+            playIcon!.className = 'icon-pause';
+            animateWaveform();
+        } else {
+            audio.pause();
+            isPlaying = false;
+            playIcon!.className = 'icon-play';
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+    });
+
+    // =========================
+    // AUDIO UPDATE
+    // =========================
+
+    let currentLineIndex = -1;
+
+    audio.addEventListener('timeupdate', () => {
+        const progress = (audio.currentTime / audio.duration) * 100;
+
+        // Update Progress Bar
+        if (progressFill) progressFill.style.width = `${progress}%`;
+
+        // Update Time Text
+        if (currentTimeEl) currentTimeEl.textContent = formatTime(audio.currentTime);
+
+        // Transcript Highlight Scroll
+        const lines = document.querySelectorAll('.transcript-line');
+        if (lines.length === 0) return;
+
+        // Accurate Proportional Transcript Find
+        const progressRatio = audio.currentTime / (audio.duration || 1);
+        let activeLine = timingMap.findIndex(range => 
+            progressRatio >= range.start && progressRatio < range.end
+        );
+
+        // End of file safety net
+        if (activeLine === -1 && progressRatio >= 0.95) {
+            activeLine = rawSegments.length - 1;
+        }
+        
+        if (activeLine === -1) activeLine = 0;
+
+        if (activeLine !== currentLineIndex && activeLine >= 0) {
+            
+            // Remove previous active state
+            if (currentLineIndex !== -1 && lines[currentLineIndex]) {
+                lines[currentLineIndex].classList.remove('active-line');
+            }
+
+            // Set new active state
+            const line = lines[activeLine];
+            if (line) {
+                line.classList.add('active-line');
+                
+                // Only perform scroll INTO view if explicit toggle IS ACTIVE
+                if (isFollowEnabled) {
+                    line.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
                 }
             }
-        });
 
-    // =========================
-    // REWIND
-    // =========================
-
-    rewindBtn?.addEventListener(
-        "click",
-        () => {
-
-            audio.currentTime =
-                Math.max(0, audio.currentTime - 10);
-        });
-
-    // =========================
-    // FORWARD
-    // =========================
-
-    forwardBtn?.addEventListener(
-        "click",
-        () => {
-
-            audio.currentTime =
-                Math.min(
-                    audio.duration,
-                    audio.currentTime + 10
-                );
-        });
-
-    // =========================
-    // AUDIO METADATA
-    // =========================
-
-    audio.addEventListener(
-        "loadedmetadata",
-        () => {
-
-            updateDuration();
-        });
-
-    // =========================
-    // AUDIO TIME UPDATE
-    // =========================
-
-    audio.addEventListener(
-        "timeupdate",
-        () => {
-
-            updateProgress();
-
-            updateWaveform();
-        });
-
-    // =========================
-    // AUDIO ENDED
-    // =========================
-
-    audio.addEventListener(
-        "ended",
-        () => {
-
-            isPlaying = false;
-
-            if (playIcon) {
-
-                playIcon.className =
-                    "lucide-play";
-            }
-        });
+            currentLineIndex = activeLine;
+        }
+    });
 
     // =========================
     // SEEK
     // =========================
 
     progressContainer?.addEventListener(
-        "click",
-        (e) => {
+        'click',
+        (e: any) => {
 
             const rect =
                 progressContainer.getBoundingClientRect();
 
-            const clickX =
-                e.clientX - rect.left;
-
-            const width =
-                rect.width;
-
             const percent =
-                clickX / width;
+                (e.clientX - rect.left) / rect.width;
 
             audio.currentTime =
                 percent * audio.duration;
         });
 
     // =========================
-    // UPDATE PROGRESS
+    // FORMAT TIME
     // =========================
 
-    function updateProgress() {
+    function formatTime(seconds: number) {
 
-        if (!progressFill) return;
-
-        const progress =
-            (audio.currentTime / audio.duration) * 100;
-
-        progressFill.style.width =
-            `${progress}%`;
-
-        // CURRENT TIME
-        if (currentTimeEl) {
-
-            const mins =
-                Math.floor(audio.currentTime / 60);
-
-            const secs =
-                Math.floor(audio.currentTime % 60);
-
-            currentTimeEl.textContent =
-                `${mins
-                    .toString()
-                    .padStart(2, "0")}:${secs
-                        .toString()
-                        .padStart(2, "0")}`;
-        }
-    }
-
-    // =========================
-    // UPDATE DURATION
-    // =========================
-
-    function updateDuration() {
-
-        if (!durationEl) return;
+        if (!seconds) return '00:00';
 
         const mins =
-            Math.floor(audio.duration / 60);
+            Math.floor(seconds / 60);
 
         const secs =
-            Math.floor(audio.duration % 60);
+            Math.floor(seconds % 60);
 
-        durationEl.textContent =
-            `${mins
+        return `${mins
+            .toString()
+            .padStart(2, '0')}:${secs
                 .toString()
-                .padStart(2, "0")}:${secs
-                    .toString()
-                    .padStart(2, "0")}`;
+                .padStart(2, '0')}`;
     }
-
-    // =========================
-    // UPDATE WAVEFORM
-    // =========================
-
-    function updateWaveform() {
-
-        const bars =
-            document.querySelectorAll(".wave-bar");
-
-        const progress =
-            audio.currentTime / audio.duration;
-
-        const activeCount =
-            Math.floor(progress * bars.length);
-
-        bars.forEach((bar, index) => {
-
-            const element =
-                bar as HTMLElement;
-
-            if (index <= activeCount) {
-
-                element.classList.add("active");
-
-                if (isPlaying) {
-
-                    element.style.height =
-                        `${14 + Math.random() * 50}px`;
-                }
-
-            } else {
-
-                element.classList.remove("active");
-
-                element.style.height =
-                    `${12 + Math.random() * 30}px`;
-            }
-        });
-    }
-
-    // =========================
-    // KEYBOARD SHORTCUTS
-    // =========================
-
-    document.addEventListener(
-        "keydown",
-        (e) => {
-
-            // SPACEBAR
-            if (e.code === "Space") {
-
-                e.preventDefault();
-
-                playBtn?.dispatchEvent(
-                    new Event("click")
-                );
-            }
-
-            // LEFT ARROW
-            if (e.code === "ArrowLeft") {
-
-                audio.currentTime =
-                    Math.max(
-                        0,
-                        audio.currentTime - 5
-                    );
-            }
-
-            // RIGHT ARROW
-            if (e.code === "ArrowRight") {
-
-                audio.currentTime =
-                    Math.min(
-                        audio.duration,
-                        audio.currentTime + 5
-                    );
-            }
-        });
 }
-
-// =========================
-// START PLAYER
-// =========================
 
 initPlayer();

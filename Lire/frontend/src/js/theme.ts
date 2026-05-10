@@ -22,13 +22,13 @@ export function initTheme() {
             html.classList.remove('light');
             html.classList.add('dark');
             if (icon) {
-                icon.className = 'lucide-moon';
+                icon.className = 'icon-moon';
             }
         } else {
             html.classList.remove('dark');
             html.classList.add('light');
             if (icon) {
-                icon.className = 'lucide-sun';
+                icon.className = 'icon-sun';
             }
         }
     }

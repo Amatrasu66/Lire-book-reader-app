@@ -80,9 +80,12 @@ def upload_file():
     # ── 3. Extract text ────────────────────────────────────────────────────────
     try:
         if extension == "pdf":
-            text = extract_text_from_pdf(upload_path)
+            parsed = extract_text_from_pdf(upload_path)
+            text = parsed["text"]
+            cover_filename = parsed["cover"]
         else:
             text = extract_text_from_txt(upload_path)
+            cover_filename = None
     except ValueError as exc:
         delete_file(upload_path)
         return _error(str(exc), 422)
@@ -110,13 +113,25 @@ def upload_file():
     logger.info("Pipeline complete. Audio URL: %s", audio_url)
 
     return jsonify(
-        {
-            "success":   True,
-            "audio_url": audio_url,
-            "file_id":   file_id,
-            "message":   "Audio generated successfully.",
-        }
-    ), 200
+    {
+        "success": True,
+
+        "audio_url": f"/audio/{audio_filename}",
+
+        "text": text,
+
+        "title": original_name.rsplit(".", 1)[0],
+
+        "cover_image":
+            f"http://127.0.0.1:5000/static/{cover_filename}"
+            if cover_filename
+            else None,
+
+        "file_id": file_id,
+
+        "message": "Document processed successfully"
+    }
+), 200
 
 
 # ── GET /audio/<filename> ──────────────────────────────────────────────────────

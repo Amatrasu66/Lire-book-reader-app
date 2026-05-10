@@ -31,6 +31,8 @@
 
         body {
             overflow-x: hidden;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
         }
 
         /* =========================
@@ -38,44 +40,50 @@
         ========================== */
 
         .player-container {
-
             min-height: 100vh;
-
             padding-top: 130px;
             padding-bottom: 80px;
-
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
         }
 
         .player-card {
-
             width: 100%;
             max-width: 1300px;
-
-            display: grid;
-            grid-template-columns: 420px 1fr;
-
-            gap: 80px;
-
-            align-items: center;
+            display: flex;
+            flex-direction: row;
+            gap: 60px;
+            align-items: flex-start;
         }
 
-        @media (max-width: 980px) {
-
+        @media (max-width: 1024px) {
             .player-card {
-                grid-template-columns: 1fr;
-                gap: 50px;
+                gap: 40px;
+            }
+        }
+
+        @media (max-width: 920px) {
+            .player-container {
+                padding-top: 100px;
             }
 
-            .doc-cover {
-                max-width: 400px;
-                margin: 0 auto;
+            .player-card {
+                flex-direction: column;
+                gap: 40px;
+                align-items: center;
+            }
+
+            .doc-cover-wrapper {
+                position: relative !important;
+                top: 0 !important;
+                width: 100%;
+                max-width: 380px;
             }
 
             .controls-pane {
                 text-align: center;
+                align-items: center;
             }
 
             .book-badge {
@@ -85,60 +93,68 @@
             .extra-controls {
                 justify-content: center;
             }
+
+            .waveform-container {
+                justify-content: center;
+            }
+            
+            .transcript-line {
+                text-align: left;
+            }
         }
 
         /* =========================
            BOOK COVER
         ========================== */
 
-        .doc-cover {
+        .doc-cover-wrapper {
+            flex: 0 0 420px;
+            position: sticky;
+            top: 120px; /* Sticky beneath the navbar height approx */
+            z-index: 10;
+        }
 
+        .doc-cover {
             width: 100%;
             aspect-ratio: 3 / 4;
-
             position: relative;
-
             overflow: hidden;
-
-            border-radius: 36px;
-
-            background:
-                linear-gradient(135deg,
-                    rgba(255, 255, 255, 0.08),
-                    rgba(255, 255, 255, 0.03));
-
-            border: 1px solid rgba(255, 255, 255, 0.08);
-
-            backdrop-filter: blur(30px);
-
-            box-shadow:
-                0 30px 100px rgba(0, 0, 0, 0.25);
-
+            border-radius: 32px;
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            box-shadow: var(--shadow-lg), 0 30px 80px rgba(0, 0, 0, 0.12);
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
         }
 
         .doc-cover img {
-
             width: 82%;
             height: 82%;
-
             object-fit: cover;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transition: transform 0.5s ease;
+        }
 
-            border-radius: 20px;
-
-            box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.35);
+        .doc-cover:hover img {
+            transform: scale(1.03);
         }
 
         .cover-overlay {
-
             position: absolute;
-
             bottom: 20px;
             left: 20px;
             right: 20px;
+            padding: 12px;
+            border-radius: 16px;
+            text-align: center;
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
         }
 
         /* =========================
@@ -146,48 +162,41 @@
         ========================== */
 
         .controls-pane {
-
+            flex: 1;
             display: flex;
             flex-direction: column;
-
-            gap: 38px;
+            gap: 32px;
+            width: 100%;
+            max-width: 800px;
         }
 
         .book-badge {
-
             width: fit-content;
-
             padding: 8px 16px;
-
             border-radius: 999px;
-
-            background: rgba(255, 255, 255, 0.06);
-
-            border: 1px solid rgba(255, 255, 255, 0.08);
-
-            font-size: 13px;
-
-            color: var(--text-secondary);
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
         }
 
         .book-title {
-
-            margin-top: 18px;
-
-            font-size: clamp(42px, 5vw, 74px);
-
-            line-height: 0.95;
-
-            max-width: 700px;
+            margin-top: 16px;
+            font-size: clamp(36px, 4.5vw, 64px);
+            line-height: 1.1;
+            color: var(--text-primary);
+            font-weight: 800;
+            letter-spacing: -0.02em;
         }
 
         .book-meta {
-
-            margin-top: 18px;
-
+            margin-top: 12px;
             font-size: 16px;
-
             color: var(--text-secondary);
+            font-weight: 500;
         }
 
         /* =========================
@@ -195,40 +204,27 @@
         ========================== */
 
         .waveform-container {
-
             width: 100%;
-            height: 100px;
-
+            height: 140px;
             display: flex;
-            align-items: flex-end;
-
+            align-items: center;
             gap: 4px;
-
-            padding-top: 10px;
-            padding-bottom: 10px;
+            padding: 10px 0;
         }
 
         .wave-bar {
-
             flex: 1;
-
-            min-height: 10px;
-
+            min-height: 4px;
+            height: 10px;
             border-radius: 999px;
-
-            background: rgba(255, 255, 255, 0.08);
-
-            transition:
-                height 0.18s ease,
-                background 0.18s ease,
-                transform 0.18s ease;
+            background: var(--text-muted);
+            opacity: 0.3;
+            transition: height 0.15s ease, opacity 0.3s ease, background-color 0.3s ease;
         }
 
         .wave-bar.active {
-
             background: var(--primary);
-
-            transform: translateY(-2px);
+            opacity: 1;
         }
 
         /* =========================
@@ -236,21 +232,14 @@
         ========================== */
 
         .player-panel {
-
             width: 100%;
-
-            padding: 40px;
-
-            border-radius: 36px;
-
-            background:
-                linear-gradient(135deg,
-                    rgba(255, 255, 255, 0.08),
-                    rgba(255, 255, 255, 0.03));
-
-            border: 1px solid rgba(255, 255, 255, 0.08);
-
-            backdrop-filter: blur(20px);
+            padding: 32px;
+            border-radius: 32px;
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            box-shadow: var(--shadow-md);
         }
 
         /* =========================
@@ -262,41 +251,35 @@
         }
 
         #progress-container {
-
             width: 100%;
-            height: 10px;
-
+            height: 8px;
             border-radius: 999px;
-
-            background: rgba(255, 255, 255, 0.08);
-
+            background: var(--outline);
             overflow: hidden;
-
             cursor: pointer;
+            transition: height 0.2s ease;
+        }
+
+        #progress-container:hover {
+            height: 10px;
         }
 
         #progress-fill {
-
             width: 0%;
             height: 100%;
-
             border-radius: inherit;
-
             background: var(--primary);
-
             transition: width 0.1s linear;
         }
 
         .progress-stats {
-
             display: flex;
             justify-content: space-between;
-
             margin-top: 12px;
-
             font-size: 13px;
-
+            font-weight: 600;
             color: var(--text-secondary);
+            font-family: var(--font-label);
         }
 
         /* =========================
@@ -304,75 +287,58 @@
         ========================== */
 
         .playback-main {
-
-            margin-top: 42px;
-
+            margin-top: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-
-            gap: 28px;
+            gap: 24px;
         }
 
         .play-btn {
-
-            width: 100px;
-            height: 100px;
-
+            width: 88px;
+            height: 88px;
             border-radius: 50%;
-
             border: none;
-
             background: var(--primary);
-
-            color: white;
-
-            font-size: 36px;
-
+            color: var(--on-primary);
+            font-size: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-
             cursor: pointer;
-
-            transition:
-                transform 0.25s ease,
-                box-shadow 0.25s ease;
-
-            box-shadow:
-                0 10px 50px rgba(0, 0, 0, 0.25);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
         }
 
         .play-btn:hover {
-            transform: scale(1.06);
+            transform: scale(1.08);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .play-btn:active {
+            transform: scale(0.96);
         }
 
         .secondary-ctrl {
-
-            width: 58px;
-            height: 58px;
-
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-
-            background: rgba(255, 255, 255, 0.05);
-
+            background: var(--bg-tertiary);
+            border: 1px solid var(--outline);
             display: flex;
             align-items: center;
             justify-content: center;
-
-            font-size: 22px;
-
-            color: var(--text-secondary);
-
-            transition: 0.2s ease;
-
+            font-size: 20px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
             cursor: pointer;
+            opacity: 0.75;
         }
 
         .secondary-ctrl:hover {
-
-            background: rgba(255, 255, 255, 0.1);
-
+            opacity: 1;
+            background: var(--outline);
+            transform: translateY(-2px);
             color: var(--primary);
         }
 
@@ -381,42 +347,46 @@
         ========================== */
 
         .extra-controls {
-
-            margin-top: 40px;
-
+            margin-top: 32px;
             display: flex;
             flex-wrap: wrap;
-
-            gap: 16px;
+            gap: 12px;
+            justify-content: center;
         }
 
         .glass-control {
-
-            padding: 14px 20px;
-
-            border-radius: 20px;
-
-            background: rgba(255, 255, 255, 0.05);
-
-            border: 1px solid rgba(255, 255, 255, 0.08);
-
+            padding: 12px 18px;
+            border-radius: 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--outline);
             display: flex;
             align-items: center;
-
-            gap: 10px;
-
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
             color: var(--text-secondary);
-
             cursor: pointer;
-
-            transition: 0.2s ease;
+            transition: all 0.2s ease;
         }
 
         .glass-control:hover {
-
-            background: rgba(255, 255, 255, 0.09);
-
+            background: var(--outline);
             color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .glass-control.active-toggle {
+            background: var(--primary);
+            color: var(--on-primary);
+            border-color: transparent;
+        }
+        
+        .glass-control.active-toggle:hover {
+            opacity: 0.9;
+        }
+
+        .glass-control i {
+            font-size: 16px;
         }
 
         /* =========================
@@ -424,20 +394,62 @@
         ========================== */
 
         .transcription {
-
-            padding: 28px;
-
-            border-radius: 28px;
-
-            background: rgba(255, 255, 255, 0.04);
-
-            border: 1px solid rgba(255, 255, 255, 0.06);
-
+            padding: 32px;
+            border-radius: 32px;
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
             line-height: 1.8;
-
             color: var(--text-secondary);
+            font-size: 17px;
+            max-height: 600px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--outline) transparent;
+            scroll-behavior: smooth;
+        }
 
-            font-size: 15px;
+        .transcription::-webkit-scrollbar {
+            width: 6px;
+        }
+        .transcription::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .transcription::-webkit-scrollbar-thumb {
+            background-color: var(--outline);
+            border-radius: 20px;
+        }
+
+        .transcript-line {
+            opacity: 0.45;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            margin-bottom: 16px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+
+        .transcript-line:hover {
+            opacity: 0.7;
+            background: var(--outline);
+        }
+
+        .active-line {
+            opacity: 1 !important;
+            color: var(--text-primary);
+            font-weight: 600;
+            background: var(--outline);
+            border-left: 3px solid var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transform: translateX(4px);
+        }
+
+        html.dark .active-line {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
     </style>
 </head>
@@ -454,10 +466,8 @@
     <header>
 
         <div class="flex items-center gap-2">
-
             <a href="/index.html" class="flex items-center gap-2" style="text-decoration: none; color: inherit;">
-                <i class="lucide-graphic-eq text-primary" style="font-size: 24px;"></i>
-
+                <i class="icon-audio-waveform text-primary" style="font-size: 24px;"></i>
                 <span style="
                         font-family: var(--font-display);
                         font-weight: 800;
@@ -472,7 +482,7 @@
         <nav class="flex gap-4 items-center">
 
             <button class="theme-toggle" id="theme-toggle">
-                <i class="lucide-sun"></i>
+                <i class="icon-sun"></i>
             </button>
 
             <a href="/index.html" class="btn btn-outline">
@@ -488,18 +498,16 @@
         <div class="player-card animate-fade-in">
 
             <!-- LEFT -->
-            <div class="doc-cover">
-
-                <img id="cover-image"
-                    src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1200&auto=format&fit=crop"
-                    alt="Book Cover" />
-
-                <div class="cover-overlay glass-card">
-
-                    <span class="badge">
-                        AI Narration Active
-                    </span>
-
+            <div class="doc-cover-wrapper">
+                <div class="doc-cover">
+                    <img id="cover-image"
+                        src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1200&auto=format&fit=crop"
+                        alt="Book Cover" />
+                    <div class="cover-overlay">
+                        <span class="badge">
+                            AI Narration Active
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -551,50 +559,40 @@
 
                     <!-- MAIN BUTTONS -->
                     <div class="playback-main">
-
                         <div class="secondary-ctrl" id="rewind">
-                            <i class="lucide-rotate-ccw"></i>
+                            <i class="icon-rotate-ccw"></i>
                         </div>
-
                         <button class="play-btn" id="play-pause">
-                            <i class="lucide-play" id="play-icon"></i>
+                            <i class="icon-play" id="play-icon"></i>
                         </button>
-
                         <div class="secondary-ctrl" id="forward">
-                            <i class="lucide-rotate-cw"></i>
+                            <i class="icon-rotate-cw"></i>
                         </div>
-
                     </div>
 
                     <!-- EXTRA CONTROLS -->
                     <div class="extra-controls">
-
-                        <div class="glass-control">
-
-                            <i class="lucide-gauge"></i>
-
-                            <span>
-                                1.2x Speed
-                            </span>
-
+                        <!-- FOLLOW TRANSCRIPT TOGGLE -->
+                        <div class="glass-control active-toggle" id="toggle-follow">
+                            <i class="icon-eye" id="follow-icon"></i>
+                            <span id="follow-text">Follow: ON</span>
+                        </div>
+                        
+                        <div class="glass-control" id="speed-control" style="cursor: pointer;">
+                            <i class="icon-gauge"></i>
+                            <span id="speed-text">1x Speed</span>
                         </div>
 
                         <div class="glass-control">
-
-                            <i class="lucide-mic-2"></i>
-
-                            <span>
-                                Serene Voice
-                            </span>
-
+                            <i class="icon-mic-2"></i>
+                            <span>Serene Voice</span>
                         </div>
-
                     </div>
 
                 </div>
 
                 <!-- TRANSCRIPT -->
-                <div class="transcription">
+                <div class="transcription" id="transcript-content">
 
                     Waiting for document transcript...
 

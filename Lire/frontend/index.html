@@ -33,6 +33,9 @@
 
         body {
             overflow-x: hidden;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
         /* =========================
@@ -40,34 +43,24 @@
         ========================== */
 
         .hero {
-
             padding-top: 180px;
             padding-bottom: 100px;
-
             text-align: center;
         }
 
         .hero h1 {
-
             font-size: clamp(52px, 8vw, 92px);
-
             line-height: 0.95;
-
             letter-spacing: -0.05em;
-
             margin-bottom: 30px;
+            color: var(--text-primary);
         }
 
         .hero-description {
-
             max-width: 720px;
-
             margin-inline: auto;
-
             font-size: 20px;
-
             line-height: 1.8;
-
             color: var(--text-secondary);
         }
 
@@ -76,86 +69,58 @@
         ========================== */
 
         .upload-zone {
-
             position: relative;
-
             max-width: 850px;
-
             margin: 60px auto 0;
-
             padding: 70px 50px;
-
             border-radius: 40px;
-
             overflow: hidden;
+            border: 2px dashed var(--glass-border);
+            background: var(--bg-glass);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            box-shadow: var(--shadow-lg);
+            transition: border-color 0.3s ease, transform 0.3s ease, background 0.3s ease;
+        }
 
-            border: 2px dashed rgba(255, 255, 255, 0.12);
-
-            background:
-                linear-gradient(135deg,
-                    rgba(255, 255, 255, 0.06),
-                    rgba(255, 255, 255, 0.02));
-
-            backdrop-filter: blur(24px);
-
-            transition:
-                border-color 0.3s ease,
-                transform 0.3s ease,
-                background 0.3s ease;
+        html.dark .upload-zone {
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .upload-zone:hover {
-
-            border-color: rgba(255, 255, 255, 0.22);
-
+            border-color: var(--primary);
             transform: translateY(-4px);
         }
 
         .upload-zone.dragging {
-
-            border-color: var(--primary);
-
-            background:
-                linear-gradient(135deg,
-                    rgba(255, 255, 255, 0.09),
-                    rgba(255, 255, 255, 0.03));
-
+            border-color: var(--tertiary);
+            background: var(--bg-tertiary);
             transform: scale(1.01);
         }
 
         .upload-icon {
-
             font-size: 72px;
-
             margin-bottom: 28px;
-
             color: var(--primary);
         }
 
         .upload-title {
-
             font-size: 42px;
-
             margin-bottom: 18px;
+            color: var(--text-primary);
         }
 
         .upload-subtitle {
-
             color: var(--text-secondary);
-
             font-size: 18px;
         }
 
         .upload-actions {
-
             margin-top: 40px;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             gap: 18px;
-
             flex-wrap: wrap;
         }
 
@@ -164,45 +129,34 @@
         ========================== */
 
         .upload-loading-ui {
-
             display: flex;
             flex-direction: column;
             align-items: center;
-
             gap: 28px;
         }
 
         .upload-loading-ui h2 {
-
             font-size: 36px;
+            color: var(--text-primary);
         }
 
         .upload-loading-ui p {
-
             color: var(--text-secondary);
         }
 
         .loading-bar {
-
             width: 280px;
             height: 8px;
-
             border-radius: 999px;
-
             overflow: hidden;
-
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--outline);
         }
 
         #progress-bar {
-
             width: 0%;
             height: 100%;
-
             background: var(--primary);
-
             border-radius: inherit;
-
             transition: width 0.25s linear;
         }
 
@@ -211,26 +165,22 @@
         ========================== */
 
         .success-ui {
-
             display: flex;
             flex-direction: column;
             align-items: center;
-
             gap: 20px;
         }
 
         .success-ui i {
-
             font-size: 70px;
         }
 
         .success-ui h2 {
-
             font-size: 42px;
+            color: var(--text-primary);
         }
 
         .success-ui p {
-
             color: var(--text-secondary);
         }
 
@@ -239,48 +189,37 @@
         ========================== */
 
         .features {
-
             padding-bottom: 120px;
         }
 
         .feature-card {
-
             border-radius: 28px;
-
             padding: 34px;
-
-            background:
-                linear-gradient(135deg,
-                    rgba(255, 255, 255, 0.05),
-                    rgba(255, 255, 255, 0.02));
-
-            border: 1px solid rgba(255, 255, 255, 0.06);
-
-            transition:
-                transform 0.25s ease,
-                border-color 0.25s ease;
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            box-shadow: var(--shadow-md);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
         }
 
         .feature-card:hover {
-
             transform: translateY(-6px);
+            border-color: var(--primary);
+        }
 
-            border-color: rgba(255, 255, 255, 0.12);
+        .feature-card h3 {
+            color: var(--text-primary);
         }
 
         .feature-card i {
-
             font-size: 34px;
-
             margin-bottom: 18px;
         }
 
         .feature-card p {
-
             margin-top: 12px;
-
             line-height: 1.7;
-
             color: var(--text-secondary);
         }
 
@@ -289,29 +228,20 @@
         ========================== */
 
         .toast {
-
             position: fixed;
-
             right: 30px;
             bottom: 30px;
-
             padding: 18px 24px;
-
             border-radius: 16px;
-
-            background:
-                linear-gradient(135deg,
-                    rgba(255, 255, 255, 0.08),
-                    rgba(255, 255, 255, 0.03));
-
-            border: 1px solid rgba(255, 255, 255, 0.08);
-
-            backdrop-filter: blur(20px);
-
+            background: var(--bg-glass);
+            color: var(--text-primary);
+            font-weight: 600;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            box-shadow: var(--shadow-lg);
             transform: translateY(120px);
-
-            transition: transform 0.4s ease;
-
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 9999;
         }
 
@@ -335,9 +265,7 @@
     <header>
 
         <div class="flex items-center gap-2">
-
-            <i class="lucide-graphic-eq text-primary" style="font-size: 24px;"></i>
-
+            <i class="icon-audio-waveform text-primary" style="font-size: 24px;"></i>
             <span style="
                     font-family: var(--font-display);
                     font-weight: 800;
@@ -346,37 +274,28 @@
                 ">
                 Lire
             </span>
-
         </div>
 
         <nav class="nav-desktop flex gap-4 items-center">
-
-            <a href="#" class="btn btn-outline" style="border: none;">
+            <a href="#" class="btn btn-ghost">
                 Library
             </a>
-
-            <a href="/player.html" class="btn btn-outline" style="border: none;">
+            <a href="/player.html" class="btn btn-ghost">
                 Player Demo
             </a>
-
             <button class="theme-toggle" id="theme-toggle">
-                <i class="lucide-sun"></i>
+                <i class="icon-sun"></i>
             </button>
-
             <a href="#" class="btn btn-primary">
                 Sign In
             </a>
-
         </nav>
-
     </header>
 
     <!-- MAIN -->
     <main class="container">
-
         <!-- HERO -->
         <section class="hero animate-fade-in">
-
             <h1>
                 Read with your
                 <span class="text-primary">
@@ -388,172 +307,111 @@
                     soul.
                 </span>
             </h1>
-
             <p class="hero-description">
-
                 Transform PDFs, books, and documents into
                 immersive AI-powered listening experiences
                 designed for deep focus and modern learning.
-
             </p>
 
             <!-- UPLOAD -->
             <div class="upload-zone" id="drop-zone">
-
                 <!-- IDLE -->
                 <div id="upload-idle">
-
-                    <i class="lucide-cloud-upload upload-icon"></i>
-
+                    <i class="icon-cloud-upload upload-icon"></i>
                     <h2 class="upload-title">
                         Drop your document here
                     </h2>
-
                     <p class="upload-subtitle">
                         Supports PDF, TXT, and EPUB files
                     </p>
-
                     <div class="upload-actions">
-
                         <button class="btn btn-primary" id="start-btn">
-
-                            <i class="lucide-plus mr-2" style="font-size: 16px;"></i>
-
+                            <i class="icon-plus mr-2" style="font-size: 16px;"></i>
                             Start Listening
-
                         </button>
-
                         <input type="file" id="file-input" hidden accept=".pdf,.txt,.epub">
-
                         <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">
                             Browse Files
                         </button>
-
                     </div>
-
                 </div>
 
                 <!-- LOADING -->
                 <div id="upload-loading" style="display: none;">
-
                     <div class="upload-loading-ui">
-
                         <div class="animate-float">
-
-                            <i class="lucide-loader-2 animate-spin text-primary" style="font-size: 64px;"></i>
-
+                            <i class="icon-loader-2 animate-spin text-primary" style="font-size: 64px;"></i>
                         </div>
-
                         <h2>
                             Processing your document...
                         </h2>
-
                         <p>
                             Extracting text and preparing
                             narration experience
                         </p>
-
                         <div class="loading-bar">
-
                             <div id="progress-bar"></div>
-
                         </div>
-
                     </div>
-
                 </div>
 
                 <!-- SUCCESS -->
                 <div id="upload-success" style="display: none;">
-
                     <div class="success-ui">
-
-                        <i class="lucide-check-circle text-primary"></i>
-
+                        <i class="icon-check-circle text-primary"></i>
                         <h2>
                             Ready for listening
                         </h2>
-
                         <p id="ready-filename"></p>
-
                         <a href="/player.html" class="btn btn-primary">
                             Open Player
                         </a>
-
                     </div>
-
                 </div>
-
             </div>
-
         </section>
 
         <!-- FEATURES -->
         <section class="features">
-
             <div class="grid grid-3">
-
                 <!-- FEATURE -->
                 <div class="feature-card animate-fade-in stagger-1">
-
-                    <i class="lucide-brain text-primary"></i>
-
+                    <i class="icon-brain text-primary"></i>
                     <h3>
                         Smart Summaries
                     </h3>
-
                     <p>
-
                         Get instant understanding of long
                         documents before diving deeper into
                         the full listening experience.
-
                     </p>
-
                 </div>
-
                 <!-- FEATURE -->
                 <div class="feature-card animate-fade-in stagger-2">
-
-                    <i class="lucide-zap text-tertiary"></i>
-
+                    <i class="icon-zap text-tertiary"></i>
                     <h3>
                         Neural Voices
                     </h3>
-
                     <p>
-
                         High-quality AI narration optimized
                         for long-form listening and knowledge
                         retention.
-
                     </p>
-
                 </div>
-
                 <!-- FEATURE -->
                 <div class="feature-card animate-fade-in stagger-3">
-
-                    <i class="lucide-book-open text-primary"></i>
-
+                    <i class="icon-book-open text-primary"></i>
                     <h3>
                         Deep Focus Mode
                     </h3>
-
                     <p>
-
                         Minimal distraction interface designed
                         for immersive reading and listening
                         sessions.
-
                     </p>
-
                 </div>
-
             </div>
-
         </section>
-
     </main>
 
     <!-- TOAST -->

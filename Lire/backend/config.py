@@ -37,3 +37,20 @@ FILE_MAX_AGE_SECONDS = 60 * 60 * 2     # 2 hours
 DEBUG = os.getenv("FLASK_DEBUG", "true").lower() == "true"
 HOST  = os.getenv("FLASK_HOST", "0.0.0.0")
 PORT  = int(os.getenv("FLASK_PORT", 5000))
+
+# ── Ensure directories exist ───────────────────────────────────────────────────
+
+os.makedirs(
+    UPLOAD_DIR,
+    exist_ok=True
+)
+
+os.makedirs(
+    AUDIO_DIR,
+    exist_ok=True
+)
+
+os.makedirs(
+    STATIC_DIR,
+    exist_ok=True
+)
