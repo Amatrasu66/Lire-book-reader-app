@@ -9,8 +9,8 @@ import gc
 
 logger = logging.getLogger(__name__)
 
-# Strongly reduced block sizing to minimize individual payload footprints and stack size
-CHUNK_TARGET_CHARS = 2000
+# Aggressively reduced block sizing for absolute minimum static heap consumption
+CHUNK_TARGET_CHARS = 1500
 
 def split_into_chunks(text: str, target_size: int = CHUNK_TARGET_CHARS):
     """Splits text intelligently by double-newline paragraph clusters."""
@@ -74,12 +74,12 @@ async def _process_single_chunk(chunk_text: str, voice: str, index: int):
         
         duration = timings[-1]["end"] if timings else 0
             
+        # REMOVE text from response to save critical RAM
         return {
             "success": True,
             "filename": filename,
             "duration": duration,
-            "timings": timings,
-            "text": chunk_text
+            "timings": timings
         }
     except Exception as e:
         logger.error(f"Memory Safe Skip on chunk {index}: {e}")
@@ -100,8 +100,8 @@ async def _synthesize_all_chunks(text_chunks: list, voice: str):
         # Explicit scheduler yielding allows network stack handling without context-swapping memory hits
         await asyncio.sleep(0.05)
         
-        # Aggressive garbage cleanup between iterations frees streaming buffers immediately
-        if idx % 3 == 0:
+        # Free dynamic memory immediately
+        if idx % 2 == 0:
              gc.collect()
              
     return results
@@ -117,7 +117,7 @@ def generate_audio(text: str, voice_type="female"):
         raise ValueError("Text payload empty.")
 
     text_chunks = split_into_chunks(text)
-    logger.info(f"Memory Optimized Pipeline engaged. Total chunks: {len(text_chunks)}")
+    logger.info(f"Memory Optimized Pipeline. Total chunks: {len(text_chunks)}")
 
     voice = "en-US-AvaNeural" if voice_type == "female" else "en-US-GuyNeural"
 
@@ -130,21 +130,25 @@ def generate_audio(text: str, voice_type="female"):
         logger.error(f"Pipeline OOM Safe Fail: {e}")
         raise RuntimeError("Optimized stable synthesizer encountered a blocking fault.")
 
+    # Unload text chunks from RAM immediately
+    del text_chunks
+    gc.collect()
+
     valid_manifest = []
     for res in chunk_results:
         if res.get("success"):
             valid_manifest.append({
                 "audio_filename": res["filename"],
                 "duration": res["duration"],
-                "timings": res["timings"],
-                "text": res["text"]
+                "timings": res["timings"]
             })
             
-    # Final heap purge
+    # Final memory disposal
+    del chunk_results
     gc.collect()
 
     if not valid_manifest:
         raise RuntimeError("Stability Mode: synthesis returned zero valid chunks.")
 
-    logger.info(f"Finalized playlist under safe memory profile. Output: {len(valid_manifest)}")
+    logger.info(f"Finalized playlist. Safe memory output: {len(valid_manifest)} chunks.")
     return valid_manifest

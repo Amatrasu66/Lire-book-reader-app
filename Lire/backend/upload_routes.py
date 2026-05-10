@@ -114,8 +114,7 @@ def upload_file():
         final_chunks.append({
             "audio_url": f"/audio/{chunk_obj['audio_filename']}",
             "duration": chunk_obj["duration"],
-            "timings": chunk_obj["timings"],
-            "text": chunk_obj["text"]
+            "timings": chunk_obj["timings"]
         })
         
     logger.info("Scaled pipeline complete. Finalized playlist of %d items.", len(final_chunks))
